@@ -122,7 +122,13 @@ const SpeciesTable = (props) => {
     setSpeciesEdit(species)
     setIsEdit(true)
   }
-
+  // add user function code Edit code
+  const handleAddSpecies = () => {
+    setSpeciesEdit({})
+    setIsEdit(true) // contain the same form layout as edit
+  }
+  
+  //............
   const getSpecies = () => {
     return (rowsPerPage > 0
       ? props.speciesState.speciesList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -182,7 +188,7 @@ const SpeciesTable = (props) => {
                 </Grid>
                 <Grid item className={classes.addUserBox}>
                   <Button
-                    // onClick={handleAddUser}
+                    onClick={handleAddSpecies}
                     variant="contained"
                     className={classes.addUser}
                     color="primary"
@@ -267,6 +273,7 @@ const EditModal = ({
     setSpeciesEdit(undefined)
   }
 
+  // dialog for edit and add
   return (
     <Dialog open={isEdit} aria-labelledby="form-dialog-title">
       <DialogTitle id="form-dialog-title">Species Detail</DialogTitle>
@@ -314,6 +321,7 @@ const EditModal = ({
       </DialogActions>
     </Dialog>
   )
+
 }
 
 export default withStyles(styles)(
