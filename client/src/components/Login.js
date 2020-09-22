@@ -77,7 +77,6 @@ const Login = (props) => {
           }
         )
         if (response.status === 200) {
-          console.log(response)
           if (response.data.token === undefined) {
             //the role not change
             appContext.login(user, token)
@@ -144,37 +143,49 @@ const Login = (props) => {
     setPasswordBlurred(true)
     setUsernameBlurred(true)
 
-    if (!loading) {
+    //Do not show loading spinner if username or password are empty
+    if (!loading && userName && password) {
       setLoading(true)
     }
-    ;(async () => {
-      try {
-        const res = await axios.post(`${process.env.REACT_APP_API_ROOT}/auth/login`, {
-          userName,
-          password,
-        })
-        if (res.status === 200) {
-          const token = res.data.token
-          const user = res.data.user
-          //remember
-          if (isRemember) {
-            localStorage.setItem('token', JSON.stringify(token))
-            localStorage.setItem('user', JSON.stringify(user))
+
+    //Do not send request if username or password are empty
+    if (userName && password) {
+      (async () => {
+        try {
+          const res = await axios.post(`${process.env.REACT_APP_API_ROOT}/auth/login`, {
+            userName,
+            password,
+          })
+          if (res.status === 200) {
+            const token = res.data.token
+            const user = res.data.user
+            //remember
+            if (isRemember) {
+              localStorage.setItem('token', JSON.stringify(token))
+              localStorage.setItem('user', JSON.stringify(user))
+            }
+            appContext.login(user, token)
+            setLoading(true)
+          } else {
+            setErrorMessage('Invalid username or password')
+            setLoading(false)
           }
-          appContext.login(user, token)
-          setLoading(true)
-        } else {
-          setErrorMessage('Invalid username or password')
-          setLoading(false)
+        } catch (e) {
+          console.error("Undefined User error:", e)
+          if (e.response.data.errorMessage) {
+            setErrorMessage(
+              e.response.data.errorMessage
+            )
+            setLoading(false)
+          } else {
+            setErrorMessage(
+              'Could not log in. Please check your username and password or contact the admin.'
+            )
+            setLoading(false)
+          }
         }
-      } catch (e) {
-        console.error(e)
-        setErrorMessage(
-          'Could not log in. Please check your username and password or contact the admin.'
-        )
-        setLoading(false)
-      }
-    })()
+      })()
+    }
     return false
   }
 
@@ -259,7 +270,8 @@ const Login = (props) => {
             fullWidth
             variant="contained"
             color="primary"
-            disabled={loading}
+            //Disable button if sending request, username or password are empty
+            disabled={loading || !userName || !password}
             className={submitClassname}
           >
             <Typography className={classes.submitText}>LOG IN</Typography>

@@ -38,6 +38,7 @@ import Navbar from "./Navbar";
 import PlanterDetail from "./PlanterDetail"
 import TreeTags from './TreeTags';
 import TreeDetailDialog from './TreeDetailDialog';
+import withData from './common/withData'
 
 const log = require('loglevel').getLogger('../components/TreeImageScrubber');
 
@@ -164,6 +165,8 @@ const useStyles = makeStyles(theme => ({
   },
 
 }));
+
+const ToVerifyCounter = withData(({data}) => <>{`${data} trees to verify`}</>);
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -468,7 +471,9 @@ const TreeImageScrubber = (props) => {
                 >
                   <Grid item>
                     <Typography variant='h5'>
-                      {false /* close counter*/ && props.verityState.treeCount} trees to verify
+                      <ToVerifyCounter needsRefresh={props.verityState.invalidateTreeCount}
+                        fetch={props.verityDispatch.getTreeCount}
+                        data={props.verityState.treeCount}/>
                     </Typography>
                   </Grid>
                   <Grid item>
@@ -722,9 +727,10 @@ function SidePanel(props) {
           }
 
         </Grid>
-        <Grid className={`${classes.sidePanelItem}`}>
+        {/*Hidden until functionality is implemented. Issuer: https://github.com/Greenstand/treetracker-admin/issues/371*/}
+        {false && <Grid className={`${classes.sidePanelItem}`}>
           <TextField placeholder='Note (optional)' ></TextField>
-        </Grid>
+        </Grid>}
         <Grid className={`${classes.sidePanelItem}`}>
           <Button onClick={handleSubmit} color='primary' >SUBMIT</Button>
         </Grid>

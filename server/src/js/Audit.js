@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /*
  * To record operation on the system
  */
-const {Pool, Client} = require('pg');
-const log = require('loglevel');
-const db = require('../datasources/treetracker.datasource.json');
-//const assert = require('assert').strict;
+import {Pool} from 'pg';
+// import log from 'loglevel';
+import db from '../datasources/treetracker.datasource.json';
+// import {strict as assert} from 'assert';
 
 const operations = {
   login: {
@@ -15,10 +17,10 @@ const operations = {
   },
 };
 
-const auditMiddleware = (request, response, next) => {
+export const auditMiddleware = (request, response, next) => {
   try {
     const oldJSON = response.json;
-    response.on('finish', async function() {
+    response.on('finish', async function () {
       try {
         //console.log('req:', req);
         //console.log('req.header:', request.headers);
@@ -28,26 +30,26 @@ const auditMiddleware = (request, response, next) => {
           const audit = new Audit();
           await audit.did(request, response);
         } else {
-          console.log('quit when failed');
+          //console.log('quit when failed');
         }
       } catch (e) {
         console.error(e);
         next(e);
       }
     });
-    response.json = data => {
+    response.json = (data) => {
       //console.log('data:', data);
       // For Async call, handle the promise and then set the data to `oldJson`
       if (data && data.then != undefined) {
         // Resetting json to original to avoid cyclic call.
         return data
-          .then(responseData => {
+          .then((responseData) => {
             // Custom logic/code.
             response.json = oldJSON;
             response.myData = responseData;
             return oldJSON.call(response, responseData);
           })
-          .catch(error => {
+          .catch((error) => {
             next(error);
           });
       } else {
@@ -75,7 +77,8 @@ class Audit {
     //assert(req.headers);
     //assert(req.headers.host);
     //assert(req.headers['user-agent']);
-    const host = req.headers['x-real-ip'] || req.headers.host.match(/(.*):(.*)/)[1];
+    const host =
+      req.headers['x-real-ip'] || req.headers.host.match(/(.*):(.*)/)[1];
     const userAgent = req.headers['user-agent'];
     let operation;
     let operator;
@@ -99,11 +102,11 @@ class Audit {
         operation = operations.tree_verify;
         operation.payload = req.body;
       } else {
-        console.log('no need audit', url);
+        //console.log('no need audit', url);
         return;
       }
     } else {
-      console.log('no need audit', url);
+      //console.log('no need audit', url);
       return;
     }
     //assert(operation);
@@ -112,11 +115,10 @@ class Audit {
     const sql = `insert into audit ("admin_user_id", platform, ip, browser, organization, operation) values (${operator}, 'admin_panel', '${host}', '${userAgent}', 'greenstand', '${JSON.stringify(
       operation,
     )}')`;
-    console.debug('audit sql:', sql);
+    //console.debug('audit sql:', sql);
 
     await this.pool.query(sql);
   }
 }
 
-module.exports = Audit;
-module.exports.auditMiddleware = auditMiddleware;
+export default Audit;

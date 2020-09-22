@@ -37,7 +37,14 @@ const species = {
     async loadSpeciesList() {
       const speciesList = await api.getSpecies()
       log.debug('load species from api:', speciesList.length)
-      this.setSpeciseList(speciesList)
+      const sepcieListWithCount = await Promise.all(
+        speciesList.map(async (species) => {
+          let treeCount = await api.getTreeCountPerSpecies(species.id)
+          species.treeCount = treeCount.count
+          return species
+        })
+      )
+      this.setSpeciseList(sepcieListWithCount)
     },
     onChange(text) {
       console.log('on change:"', text, '"')
@@ -80,12 +87,20 @@ const species = {
       }
     },
     /*
-     * to edit the specie
+     * to edit the species
      */
     async editSpecies(payload, state) {
       const { id, name, desc } = payload
       let editedSpecies = await api.editSpecies(id, name, desc)
       console.debug('edit old species:', editedSpecies)
+    },
+    /*
+     * to delete the species
+     */
+    async deleteSpecies(payload, state) {
+      const { id } = payload
+      let deletedSpecies = await api.deleteSpecies(id)
+      console.debug('delete outdated species:', deletedSpecies)
     },
   },
 }
